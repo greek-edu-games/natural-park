@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd8f5"/><stop offset="1" stop-color="#4fb3e8"/></linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a2693a"/><stop offset="1" stop-color="#7a4a20"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#sky)"/>
+  <ellipse cx="120" cy="490" rx="300" ry="130" fill="#2f8f52"/>
+  <ellipse cx="420" cy="520" rx="300" ry="150" fill="#1d6b3f"/>
+  <!-- safe zone: κεντρικό 60% -->
+  <circle cx="380" cy="150" r="30" fill="#fbbf24"/>
+  <rect x="242" y="310" width="28" height="90" rx="6" fill="#5e3a16"/>
+  <rect x="136" y="170" width="240" height="150" rx="26" fill="url(#wood)" stroke="#5e3a16" stroke-width="11"/>
+  <rect x="158" y="192" width="196" height="106" rx="16" fill="#fff7e0"/>
+  <text x="256" y="277" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="92" font-weight="900" fill="#2b1b0e">Φ!</text>
+  <path d="M150 176 q38 -46 84 -14 q-22 54 -84 14 Z" fill="#86efac" stroke="#1d6b3f" stroke-width="5" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd8f5"/><stop offset="1" stop-color="#4fb3e8"/></linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a2693a"/><stop offset="1" stop-color="#7a4a20"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#sky)"/>
+  <!-- λόφοι -->
+  <ellipse cx="120" cy="470" rx="260" ry="120" fill="#2f8f52"/>
+  <ellipse cx="420" cy="500" rx="260" ry="140" fill="#1d6b3f"/>
+  <!-- δέντρα -->
+  <path d="M60 330 L110 230 L160 330 Z" fill="#1d6b3f"/><path d="M70 290 L110 210 L150 290 Z" fill="#2f8f52"/><rect x="100" y="330" width="20" height="40" fill="#5e3a16"/>
+  <path d="M352 330 L402 230 L452 330 Z" fill="#1d6b3f"/><path d="M362 290 L402 210 L442 290 Z" fill="#2f8f52"/><rect x="392" y="330" width="20" height="40" fill="#5e3a16"/>
+  <!-- ήλιος -->
+  <circle cx="400" cy="112" r="40" fill="#fbbf24"/>
+  <!-- ταμπέλα -->
+  <rect x="236" y="300" width="40" height="150" rx="8" fill="#5e3a16"/>
+  <rect x="96" y="120" width="320" height="200" rx="34" fill="url(#wood)" stroke="#5e3a16" stroke-width="14"/>
+  <rect x="124" y="148" width="264" height="144" rx="22" fill="#fff7e0"/>
+  <text x="256" y="262" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="124" font-weight="900" fill="#2b1b0e">Φ!</text>
+  <!-- φύλλο -->
+  <path d="M118 128 q50 -60 110 -18 q-30 70 -110 18 Z" fill="#86efac" stroke="#1d6b3f" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M128 124 q40 -20 90 -6" fill="none" stroke="#1d6b3f" stroke-width="5" stroke-linecap="round"/>
+</svg>

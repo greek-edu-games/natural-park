@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Φυσικά!</title>
+<meta name="theme-color" content="#0f3b25">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Φυσικά!">
+<style>
+  /* Φυσικό πάρκο — δάσος, ουρανός, ξύλινες ταμπέλες */
+  :root{
+    --sky0:#9fd8f5; --sky1:#4fb3e8; --for0:#0f3b25; --for1:#1d6b3f; --for2:#2f8f52;
+    --wood:#8a5a2b; --wood2:#5e3a16; --sign:#fff7e0; --signInk:#2b1b0e; --signDim:#7a5a3a;
+    --leaf:#86efac; --sun:#fbbf24; --fox:#f97316; --bad:#ef4444; --good:#22c55e; --ink:#f6fbf4; --dim:#c9e7cf;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none !important}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(180deg,var(--sky0) 0%,var(--sky1) 32%,var(--for2) 52%,var(--for1) 70%,var(--for0) 100%);
+    color:var(--ink); overflow:hidden; overscroll-behavior:none;
+    user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;
+  }
+  button{touch-action:manipulation;font:inherit;cursor:pointer}
+  #app{position:fixed;inset:0}
+  /* λόφοι & δέντρα στο φόντο */
+  #app::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(60% 28% at 10% 62%, rgba(31,110,64,.9) 0 60%, transparent 61%),
+      radial-gradient(70% 30% at 90% 66%, rgba(23,90,52,.95) 0 60%, transparent 61%),
+      radial-gradient(50% 22% at 50% 70%, rgba(40,130,74,.9) 0 60%, transparent 61%),
+      radial-gradient(5px 5px at 18% 14%, #fff8 60%, transparent), radial-gradient(4px 4px at 72% 9%, #fff7 60%, transparent),
+      radial-gradient(3px 3px at 40% 20%, #fff6 60%, transparent);
+  }
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important} }
+
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    overflow-y:auto;gap:14px;z-index:10;
+    padding:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));
+    opacity:0;pointer-events:none;transition:opacity .3s}
+  .screen::before,.screen::after{content:'';flex:none;margin:auto}
+  .screen.on{opacity:1;pointer-events:auto}
+  .veil{background:rgba(6,30,18,.74);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:30}
+
+  h1{font-size:clamp(34px,10vw,56px);text-shadow:0 4px 18px rgba(0,0,0,.45);text-align:center;letter-spacing:-.5px;line-height:1}
+  h1 small{display:block;font-size:clamp(14px,3.8vw,18px);font-weight:600;letter-spacing:.5px;color:#0f3b25;text-shadow:0 1px 0 rgba(255,255,255,.35);margin-top:8px}
+  .tagline{color:var(--dim);text-align:center;max-width:380px;line-height:1.5;font-size:15px}
+
+  .btn{font-size:17px;font-weight:800;color:#3a1f04;border:none;border-radius:14px;
+    background:linear-gradient(180deg,#ffd766,var(--sun));padding:14px 26px;min-height:48px;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);transition:transform .1s}
+  .btn:active{transform:scale(.96)}
+  .btn.ghost{background:rgba(255,255,255,.12);color:var(--ink);border:1px solid rgba(255,255,255,.3);box-shadow:none}
+  .btn.wide{width:100%;max-width:400px}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:400px}
+  .row .btn{flex:1 1 140px}
+
+  .pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;color:var(--ink);min-height:36px;display:inline-flex;align-items:center;gap:6px}
+  .tap{cursor:pointer}
+
+  /* αλεπού + συννεφάκι */
+  .fox{display:flex;align-items:center;gap:10px;max-width:400px;width:100%}
+  .fox .face{font-size:52px;line-height:1;flex:none;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));transform-origin:50% 90%}
+  .fox .face.hop{animation:hop .5s ease}
+  @keyframes hop{0%{transform:translateY(0)}40%{transform:translateY(-14px) rotate(-6deg)}100%{transform:translateY(0)}}
+  .bubble{background:var(--sign);color:var(--signInk);border-radius:16px;padding:10px 14px;font-size:15px;line-height:1.4;position:relative;flex:1;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+  .bubble::before{content:'';position:absolute;left:-8px;top:18px;border:8px solid transparent;border-right-color:var(--sign);border-left:0}
+
+  /* μονοπάτι με στάσεις */
+  #trail{width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;list-style:none}
+  .stop{display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,#a2693a,var(--wood));border:2px solid var(--wood2);border-radius:16px;padding:10px 12px;color:#fff7e0;
+    box-shadow:0 5px 0 var(--wood2),0 8px 16px rgba(0,0,0,.3);transition:transform .1s;width:100%;text-align:left}
+  .stop:active{transform:translateY(3px);box-shadow:0 2px 0 var(--wood2)}
+  .stop.locked{filter:saturate(.3) brightness(.75);box-shadow:0 5px 0 #3d2610}
+  .stop .ico{font-size:30px;flex:none;width:44px;text-align:center}
+  .stop .t{flex:1;min-width:0}
+  .stop .t b{display:block;font-size:17px}
+  .stop .t span{display:block;font-size:13px;opacity:.85;line-height:1.3}
+  .stop .stars{font-size:15px;letter-spacing:1px;flex:none;color:var(--sun);text-shadow:0 1px 0 #000}
+  .stop.sprint{background:linear-gradient(180deg,#3b82f6,#1d4ed8);border-color:#1e3a8a;box-shadow:0 5px 0 #1e3a8a,0 8px 16px rgba(0,0,0,.3)}
+  .stop.sprint.locked{box-shadow:0 5px 0 #1e3a8a}
+
+  /* ξύλινη ταμπέλα / κάρτα */
+  .sign{background:var(--sign);color:var(--signInk);border-radius:18px;padding:16px 16px 18px;width:100%;max-width:440px;
+    box-shadow:0 8px 24px rgba(0,0,0,.3),inset 0 0 0 3px #e9d9b2;display:flex;flex-direction:column;gap:12px}
+  .sign h2{font-size:18px;color:var(--wood2)}
+  .q{font-size:clamp(17px,4.6vw,21px);line-height:1.4;font-weight:600}
+  .q .num{font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap;letter-spacing:.5px}
+  .q mark{background:#fde68a;border-radius:4px;padding:0 2px;color:#1e1b4b}
+  .q .big{display:block;text-align:center;font-size:clamp(24px,7.5vw,34px);margin:8px 0 2px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:1px}
+  .q .big mark{padding:0 4px}
+  .hint{font-size:13px;color:var(--signDim)}
+
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .opts.col{grid-template-columns:1fr}
+  .opt{background:#fff;border:2px solid #d8c7a0;border-radius:14px;padding:12px 10px;font-size:clamp(16px,4.4vw,19px);font-weight:700;color:#2b1b0e;min-height:52px;
+    font-variant-numeric:tabular-nums;line-height:1.3;text-align:center;transition:transform .08s,background .15s}
+  .opt:active{transform:scale(.97)}
+  .opts.col .opt{text-align:left;font-weight:600;font-size:15.5px}
+  .opt.ok{background:#dcfce7;border-color:var(--good)}
+  .opt.bad{background:#fee2e2;border-color:var(--bad)}
+  .opt.dim{opacity:.45}
+  .opts.locked .opt{pointer-events:none}
+
+  /* πλακίδια διάταξης / κατασκευής */
+  .tiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .tile{background:#fff;border:2px solid #d8c7a0;border-radius:14px;padding:12px 14px;font-size:clamp(17px,5vw,22px);font-weight:800;min-width:56px;min-height:52px;
+    font-variant-numeric:tabular-nums;position:relative;color:#2b1b0e;transition:transform .08s}
+  .tile:active{transform:scale(.95)}
+  .tile.used{background:#e9f5ea;border-color:var(--good);color:#9aa89c;pointer-events:none}
+  .tile.bad{background:#fee2e2;border-color:var(--bad)}
+  .tile .badge{position:absolute;top:-9px;right:-9px;background:var(--for2);color:#fff;border-radius:999px;font-size:12px;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-weight:800}
+  .tile .badge.bad{background:var(--bad)}
+  .tiles.locked .tile{pointer-events:none}
+  .slots{display:flex;gap:6px;justify-content:center;align-items:center;min-height:56px}
+  .slot{width:46px;height:54px;border:2px dashed #b89c6c;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;background:#fffdf7;color:#2b1b0e;font-variant-numeric:tabular-nums}
+  .slot.sep{width:auto;border:none;background:none;font-size:22px;color:#7a5a3a}
+  .slot.full{border-style:solid;border-color:var(--for2)}
+  .undo{align-self:center;background:#fff;border:2px solid #d8c7a0;border-radius:12px;padding:8px 14px;font-weight:700;color:#7a5a3a;min-height:40px}
+
+  /* αριθμογραμμή */
+  .nline{width:100%;height:auto;display:block;margin:4px 0}
+  /* πίνακας αξίας θέσης */
+  .pv{display:flex;justify-content:center;gap:2px;flex-wrap:wrap;margin:6px 0 2px}
+  .pvc{display:flex;flex-direction:column;align-items:center;min-width:28px;border:1px solid #d8c7a0;border-radius:6px;background:#fff;padding:3px 2px}
+  .pvc b{font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums}
+  .pvc i{font-style:normal;font-size:9.5px;color:#7a5a3a;font-weight:700;letter-spacing:.3px}
+  .pvc.grp{margin-left:7px}
+  .pvc.hl{background:#fde68a;border-color:#d97706}
+
+  /* κεφαλίδα παιχνιδιού */
+  #hud{display:flex;align-items:center;gap:8px;width:100%;max-width:440px}
+  #hud .name{flex:1;font-weight:800;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.4);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #prog{display:flex;gap:4px;width:100%;max-width:440px}
+  #prog i{flex:1;height:8px;border-radius:999px;background:rgba(255,255,255,.25)}
+  #prog i.ok{background:var(--good)} #prog i.bad{background:var(--bad)} #prog i.cur{background:var(--sun)}
+  #timer{font-variant-numeric:tabular-nums}
+  #timer.low{background:var(--bad);border-color:var(--bad);animation:pulse .6s infinite alternate}
+  @keyframes pulse{to{transform:scale(1.08)}}
+
+  /* toast & φύλλο ανατροφοδότησης */
+  #toast{position:absolute;left:50%;top:14%;transform:translate(-50%,-10px);background:var(--good);color:#052e16;font-weight:900;font-size:22px;padding:10px 22px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;box-shadow:0 8px 20px rgba(0,0,0,.3);white-space:nowrap}
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  #sheet{position:absolute;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;transform:translateY(105%);transition:transform .3s;z-index:35;
+    background:var(--sign);color:var(--signInk);border-radius:22px 22px 0 0;padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -8px 30px rgba(0,0,0,.4);
+    max-height:72%;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+  #sheet.show{transform:translateY(0)}
+  #sheet h3{font-size:20px;display:flex;align-items:center;gap:8px}
+  #sheet h3.bad{color:#b91c1c} #sheet h3.ok{color:#15803d}
+  #sheet .ex{font-size:15.5px;line-height:1.5}
+  #sheet .ex b{font-variant-numeric:tabular-nums}
+  #sheet .ex .num{font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}
+  #sheet .ex mark{background:#fde68a;border-radius:4px;padding:0 2px}
+  #sheet .rule{background:#f1e7cf;border-left:4px solid var(--wood);border-radius:8px;padding:8px 10px;font-size:14px;line-height:1.45;color:#3b2a16}
+  #sheet .btn{align-self:stretch}
+
+  /* αποτελέσματα */
+  .stars-big{font-size:46px;letter-spacing:4px;text-align:center;text-shadow:0 4px 12px rgba(0,0,0,.4)}
+  .stars-big .off{opacity:.25}
+  .score{font-size:40px;font-weight:900;text-align:center;line-height:1}
+  .score small{display:block;font-size:14px;font-weight:600;color:var(--signDim);margin-top:6px}
+
+  /* σημειωματάριο κανόνων */
+  #rules .sign{gap:8px}
+  #rules h2{display:flex;align-items:center;gap:8px;margin-top:4px}
+  #rules ul{padding-left:18px;font-size:15px;line-height:1.5;display:flex;flex-direction:column;gap:5px}
+  #rules li b{font-variant-numeric:tabular-nums}
+  #rules .ex{background:#f1e7cf;border-radius:8px;padding:6px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+
+  .confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:50}
+  .confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 2.4s linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.2}}
+
+  @media (min-width:600px){ .screen{gap:16px} }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ΑΡΧΙΚΗ -->
+  <section id="scrStart" class="screen on">
+    <h1>Φυσικά!<small>ΤΟ ΠΑΡΚΟ ΤΩΝ ΦΥΣΙΚΩΝ ΑΡΙΘΜΩΝ</small></h1>
+    <div class="fox">
+      <span class="face" id="foxStart">🦊</span>
+      <div class="bubble" id="foxStartTxt">Γεια! Είμαι η Φυσούλα, η φύλακας του πάρκου. Ανεβαίνουμε το μονοπάτι ως την κορυφή;</div>
+    </div>
+    <ol id="trail"></ol>
+    <div class="row">
+      <button class="btn ghost" id="btnRules">📒 Κανόνες</button>
+      <button class="btn ghost" id="btnSoundStart">🔊 Ήχος</button>
+    </div>
+    <p class="tagline">Μαθηματικά Ε΄ Δημοτικού · Ενότητα 1, κεφ. 4–7: φυσικοί αριθμοί, αξία θέσης, σύγκριση, στρογγυλοποίηση.</p>
+  </section>
+
+  <!-- ΚΑΝΟΝΕΣ -->
+  <section id="scrRules" class="screen">
+    <div id="rules" class="sign">
+      <h2>🌼 Οι φυσικοί αριθμοί</h2>
+      <ul>
+        <li>Φυσικοί είναι οι <b>0, 1, 2, 3, …</b> Εκφράζουν ολόκληρες μονάδες (εκτός από το 0).</li>
+        <li>Τους γράφουμε με <b>10 ψηφία</b>: 0–9. Το <b>-1</b>, το <b>2,50</b> και το <b>1/4</b> ΔΕΝ είναι φυσικοί.</li>
+        <li>Κάθε φυσικός έχει <b>επόμενο</b> (+1) και <b>προηγούμενο</b> (−1). Το 0 έχει μόνο επόμενο.</li>
+        <li>Ο μικρότερος φυσικός είναι το <b>0</b>. Μεγαλύτερος <b>δεν υπάρχει</b>: κάθε αριθμός έχει επόμενο.</li>
+        <li><b>Άρτιοι</b> τελειώνουν σε 0, 2, 4, 6, 8. <b>Περιττοί</b> σε 1, 3, 5, 7, 9.</li>
+      </ul>
+      <h2>🌲 Αξία θέσης ψηφίου</h2>
+      <ul>
+        <li>Η αξία ενός ψηφίου εξαρτάται από τη <b>θέση</b> του: στο 3.333 το πρώτο 3 αξίζει 3.000, το τελευταίο 3.</li>
+        <li>Θέσεις: Μονάδες, Δεκάδες, Εκατοντάδες · Μ/Δ/Ε Χιλιάδων · Μ/Δ/Ε Εκατομμυρίων · Μ/Δ/Ε Δισεκατομμυρίων.</li>
+        <li>Κάθε θέση αξίζει <b>δεκαπλάσια</b> από τη δεξιά της και το <b>ένα δέκατο</b> της αριστερής της.</li>
+        <li><b>Ανάλυση</b>: 6.752.180 = 6.000.000 + 700.000 + 50.000 + 2.000 + 100 + 80.</li>
+      </ul>
+      <div class="ex">1.400.000.000 → ένα δισεκατομμύριο τετρακόσια εκατομμύρια</div>
+      <h2>🏞️ Σύγκριση και διάταξη</h2>
+      <ul>
+        <li>Πρώτα μετράμε τα <b>ψηφία</b>: περισσότερα ψηφία = μεγαλύτερος αριθμός (16.230.010 &gt; 6.513.010).</li>
+        <li>Ίσα ψηφία; Συγκρίνουμε <b>από αριστερά προς τα δεξιά</b> μέχρι το πρώτο διαφορετικό ψηφίο.</li>
+        <li>Ο μεγαλύτερος πενταψήφιος είναι ο <b>99.999</b>, ο μικρότερος τετραψήφιος ο <b>1.000</b>.</li>
+        <li>Αριθμός <b>δεν ξεκινά με 0</b>: με τα ψηφία 1, 0, 8 φτιάχνουμε μόνο 4 τριψήφιους.</li>
+      </ul>
+      <h2>🪨 Στρογγυλοποίηση</h2>
+      <ul>
+        <li>Διαλέγουμε <b>θέση</b>. Κοιτάμε το ψηφίο <b>ακριβώς δεξιά</b> της.</li>
+        <li><b>0–4</b>: το ψηφίο της θέσης μένει ίδιο. <b>5–9</b>: αυξάνεται κατά 1. Όλα τα δεξιά γίνονται 0.</li>
+        <li>Με τη στρογγυλοποίηση υπολογίζουμε «περίπου»: 5.134 + 6.237 ≈ 5.000 + 6.000 = 11.000.</li>
+      </ul>
+      <div class="ex">1.252.678 → ΔΧ: 1.250.000 · 1.256.990 → ΔΧ: 1.260.000 · 45.210 → Ε: 45.200</div>
+    </div>
+    <button class="btn wide" id="btnRulesBack">Πίσω στο μονοπάτι</button>
+  </section>
+
+  <!-- ΕΙΣΑΓΩΓΗ ΕΠΙΠΕΔΟΥ -->
+  <section id="scrIntro" class="screen veil">
+    <div class="sign">
+      <h2 id="introName">🌼 Το Λιβάδι</h2>
+      <div class="fox"><span class="face">🦊</span><div class="bubble" id="introTxt"></div></div>
+      <button class="btn" id="btnGo">Πάμε! 🥾</button>
+      <button class="btn ghost" id="btnIntroBack" style="color:#5e3a16;border-color:#d8c7a0">Πίσω</button>
+    </div>
+  </section>
+
+  <!-- ΠΑΙΧΝΙΔΙ -->
+  <section id="scrPlay" class="screen">
+    <div id="hud">
+      <span class="pill tap" id="btnBack" role="button" tabindex="0">◀</span>
+      <span class="name" id="hudName"></span>
+      <span class="pill" id="streak" hidden>🔥 <b id="streakN">0</b></span>
+      <span class="pill" id="timer" hidden>⏱ <b id="timerN">60</b></span>
+      <span class="pill tap" id="btnSound" role="button" tabindex="0">🔊</span>
+    </div>
+    <div id="prog"></div>
+    <div class="sign" id="card">
+      <div class="q" id="qText"></div>
+      <div id="qVisual"></div>
+      <div id="answer"></div>
+    </div>
+    <div class="fox" id="foxPlay"><span class="face" id="foxFace">🦊</span><div class="bubble" id="foxTxt">Σκέψου με την ησυχία σου!</div></div>
+    <div id="toast">Φυσικά! +10</div>
+    <div id="sheet">
+      <h3 id="shTitle"></h3>
+      <div class="ex" id="shEx"></div>
+      <div class="rule" id="shRule"></div>
+      <button class="btn" id="btnNext">Συνέχεια ▶</button>
+    </div>
+  </section>
+
+  <!-- ΤΕΛΟΣ -->
+  <section id="scrEnd" class="screen veil">
+    <div class="sign" style="align-items:center;text-align:center">
+      <h2 id="endName"></h2>
+      <div class="stars-big" id="endStars"></div>
+      <div class="score" id="endScore"></div>
+      <div class="fox"><span class="face" id="foxEnd">🦊</span><div class="bubble" id="endTxt"></div></div>
+      <div class="row">
+        <button class="btn" id="btnEndNext">Επόμενη στάση ▶</button>
+        <button class="btn ghost" id="btnEndRetry" style="color:#5e3a16;border-color:#d8c7a0">Ξανά 🔁</button>
+      </div>
+      <button class="btn ghost" id="btnEndMap" style="color:#5e3a16;border-color:#d8c7a0;width:100%">Χάρτης 🗺️</button>
+    </div>
+  </section>
+</div>
+
+<script id="logic">
+/* ============ ΛΟΓΙΚΗ ΕΡΩΤΗΣΕΩΝ (καθαρή, χωρίς DOM — δοκιμάζεται και με node) ============ */
+'use strict';
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const N = n => `<span class="num">${fmt(n)}</span>`;
+const uniq = arr => arr.filter((v, i) => arr.indexOf(v) === i);
+
+const POS = [
+  { abbr: 'Μ', name: 'Μονάδες', gen: 'Μονάδων', sto: 'στις Μονάδες' },
+  { abbr: 'Δ', name: 'Δεκάδες', gen: 'Δεκάδων', sto: 'στις Δεκάδες (Δ)' },
+  { abbr: 'Ε', name: 'Εκατοντάδες', gen: 'Εκατοντάδων', sto: 'στις Εκατοντάδες (Ε)' },
+  { abbr: 'ΜΧ', name: 'Μονάδες Χιλιάδων', gen: 'Μονάδων Χιλιάδων', sto: 'στις Χιλιάδες (ΜΧ)' },
+  { abbr: 'ΔΧ', name: 'Δεκάδες Χιλιάδων', gen: 'Δεκάδων Χιλιάδων', sto: 'στις Δεκάδες Χιλιάδων (ΔΧ)' },
+  { abbr: 'ΕΧ', name: 'Εκατοντάδες Χιλιάδων', gen: 'Εκατοντάδων Χιλιάδων', sto: 'στις Εκατοντάδες Χιλιάδων (ΕΧ)' },
+  { abbr: 'ΜΕ', name: 'Μονάδες Εκατομμυρίων', gen: 'Μονάδων Εκατομμυρίων', sto: 'στα Εκατομμύρια (ΜΕ)' },
+  { abbr: 'ΔΕ', name: 'Δεκάδες Εκατομμυρίων', gen: 'Δεκάδων Εκατομμυρίων', sto: 'στις Δεκάδες Εκατομμυρίων (ΔΕ)' },
+  { abbr: 'ΕΕ', name: 'Εκατοντάδες Εκατομμυρίων', gen: 'Εκατοντάδων Εκατομμυρίων', sto: 'στις Εκατοντάδες Εκατομμυρίων (ΕΕ)' },
+  { abbr: 'ΜΔ', name: 'Μονάδες Δισεκατομμυρίων', gen: 'Μονάδων Δισεκατομμυρίων', sto: 'στα Δισεκατομμύρια (ΜΔ)' },
+  { abbr: 'ΔΔ', name: 'Δεκάδες Δισεκατομμυρίων', gen: 'Δεκάδων Δισεκατομμυρίων', sto: 'στις Δεκάδες Δισεκατομμυρίων (ΔΔ)' },
+  { abbr: 'ΕΔ', name: 'Εκατοντάδες Δισεκατομμυρίων', gen: 'Εκατοντάδων Δισεκατομμυρίων', sto: 'στις Εκατοντάδες Δισεκατομμυρίων (ΕΔ)' }
+];
+const P10 = p => Math.pow(10, p);
+
+/* --- Ελληνικά ολογράφως --- */
+const W1 = ['', 'ένα', 'δύο', 'τρία', 'τέσσερα', 'πέντε', 'έξι', 'επτά', 'οκτώ', 'εννέα', 'δέκα', 'έντεκα', 'δώδεκα', 'δεκατρία', 'δεκατέσσερα', 'δεκαπέντε', 'δεκαέξι', 'δεκαεπτά', 'δεκαοκτώ', 'δεκαεννέα'];
+const W1F = { 1: 'μία', 3: 'τρεις', 4: 'τέσσερις', 13: 'δεκατρείς', 14: 'δεκατέσσερις' };
+const W10 = ['', '', 'είκοσι', 'τριάντα', 'σαράντα', 'πενήντα', 'εξήντα', 'εβδομήντα', 'ογδόντα', 'ενενήντα'];
+const W100 = ['', 'εκατό', 'διακόσια', 'τριακόσια', 'τετρακόσια', 'πεντακόσια', 'εξακόσια', 'επτακόσια', 'οκτακόσια', 'εννιακόσια'];
+const W100F = ['', 'εκατό', 'διακόσιες', 'τριακόσιες', 'τετρακόσιες', 'πεντακόσιες', 'εξακόσιες', 'επτακόσιες', 'οκτακόσιες', 'εννιακόσιες'];
+function w999(n, fem) {
+  const h = Math.floor(n / 100), r = n % 100, p = [];
+  if (h) p.push(h === 1 ? (r ? 'εκατόν' : 'εκατό') : (fem ? W100F : W100)[h]);
+  if (r) {
+    if (r < 20) p.push(fem && W1F[r] ? W1F[r] : W1[r]);
+    else { const t = Math.floor(r / 10), u = r % 10; p.push(W10[t]); if (u) p.push(fem && W1F[u] ? W1F[u] : W1[u]); }
+  }
+  return p.join(' ');
+}
+function words(n) {
+  if (n === 0) return 'μηδέν';
+  const b = Math.floor(n / 1e9), m = Math.floor(n / 1e6) % 1000, k = Math.floor(n / 1000) % 1000, u = n % 1000, p = [];
+  if (b) p.push(b === 1 ? 'ένα δισεκατομμύριο' : w999(b, false) + ' δισεκατομμύρια');
+  if (m) p.push(m === 1 ? 'ένα εκατομμύριο' : w999(m, false) + ' εκατομμύρια');
+  if (k) p.push(k === 1 ? 'χίλια' : w999(k, true) + ' χιλιάδες');
+  if (u) p.push(w999(u, false));
+  return p.join(' ');
+}
+
+/* --- βοηθητικά αριθμών --- */
+function genNum(k, zeroP = 0.18) { // ακριβώς k ψηφία
+  let s = String(rnd(1, 9));
+  for (let i = 1; i < k; i++) s += Math.random() < zeroP ? '0' : String(rnd(1, 9));
+  return Number(s);
+}
+const digits = n => String(n).split('').map(Number);
+const digitAt = (n, p) => Math.floor(n / P10(p)) % 10;
+function roundAt(n, p) { const q = P10(p); return Math.floor((n + q / 2) / q) * q; }
+function fmtHL(n, p) { // μορφοποίηση με τονισμένο ψηφίο στη θέση p
+  const s = String(n), k = s.length;
+  return s.split('').map((ch, i) => { const pos = k - 1 - i; const sep = (i > 0 && pos % 3 === 2) ? '.' : ''; return sep + (pos === p ? `<mark>${ch}</mark>` : ch); }).join('');
+}
+function pvTable(n, hl) {
+  const s = String(n), k = s.length;
+  return '<div class="pv">' + s.split('').map((ch, i) => { const p = k - 1 - i; return `<span class="pvc${p === hl ? ' hl' : ''}${(i > 0 && p % 3 === 2) ? ' grp' : ''}"><b>${ch}</b><i>${POS[p].abbr}</i></span>`; }).join('') + '</div>';
+}
+function expand(n) { return digits(n).map((d, i, a) => d ? d * P10(a.length - 1 - i) : 0).filter(Boolean); }
+function distinctOpts(correct, cands, count = 4) { // 1 σωστό + (count-1) διαφορετικά λάθος
+  const bad = uniq(cands.filter(v => v !== correct && v >= 0 && Number.isFinite(v))).slice(0, count - 1);
+  return shuffle([{ v: correct, ok: true }].concat(bad.map(v => ({ v, ok: false }))));
+}
+const mc = (text, opts, explain, extra = {}) => Object.assign({ kind: 'mc', text, opts: opts.map(o => ({ label: o.label !== undefined ? o.label : fmt(o.v), ok: !!o.ok })), explain }, extra);
+const kDigits = d => ({ 1: [2, 4], 2: [4, 7], 3: [5, 8], 4: [4, 9], 5: [7, 11] })[d];
+const kFor = (d, t) => { const [a, b] = kDigits(d); return Math.min(b, a + Math.floor(t * (b - a + 1))); }; // t∈[0,1): κλιμάκωση μέσα στο επίπεδο
+
+/* ============ ΓΕΝΝΗΤΡΙΕΣ ============ */
+const RULES = {
+  natural: 'Φυσικοί αριθμοί είναι οι 0, 1, 2, 3, … Εκφράζουν ολόκληρες μονάδες. Οι αρνητικοί (-1), οι δεκαδικοί (2,50) και τα κλάσματα (1/4) ΔΕΝ είναι φυσικοί.',
+  nextprev: 'Κάθε φυσικός αριθμός έχει έναν επόμενο (+1) και έναν προηγούμενο (−1), εκτός από το 0 που έχει μόνο επόμενο.',
+  evenodd: 'Κοιτάμε μόνο το τελευταίο ψηφίο: 0, 2, 4, 6, 8 → άρτιος· 1, 3, 5, 7, 9 → περιττός.',
+  pattern: 'Σε ένα αριθμητικό μοτίβο βρίσκουμε τη σχέση του κάθε αριθμού με τον προηγούμενό του (π.χ. +2) και τη συνεχίζουμε.',
+  digits: 'Μετράμε τα ψηφία. Οι τελείες δεν είναι ψηφία — απλώς χωρίζουν τις τριάδες για να διαβάζουμε πιο εύκολα.',
+  place: 'Από δεξιά προς τα αριστερά: Μονάδες, Δεκάδες, Εκατοντάδες, μετά Μ/Δ/Ε Χιλιάδων, Μ/Δ/Ε Εκατομμυρίων, Μ/Δ/Ε Δισεκατομμυρίων.',
+  value: 'Η αξία ενός ψηφίου εξαρτάται από τη θέση του: ψηφίο × αξία θέσης (1, 10, 100, 1.000, …).',
+  expand: 'Αναλύουμε τον αριθμό σε άθροισμα της αξίας των ψηφίων του. Τα μηδενικά δεν προσθέτουν τίποτα.',
+  words: 'Διαβάζουμε ανά τριάδα: … δισεκατομμύρια, … εκατομμύρια, … χιλιάδες, … Κάθε τριάδα που λείπει γράφεται 000.',
+  ten: 'Κάθε θέση αξίζει δεκαπλάσια από την αμέσως δεξιά της: 10 = 10×1, 100 = 10×10, 1.000 = 10×100, …',
+  compare: 'Πρώτα μετράμε ψηφία: περισσότερα ψηφία = μεγαλύτερος. Με ίσα ψηφία συγκρίνουμε από αριστερά προς τα δεξιά μέχρι το πρώτο διαφορετικό ψηφίο.',
+  build: 'Για τον μεγαλύτερο αριθμό βάζουμε τα ψηφία από το μεγαλύτερο στο μικρότερο· για τον μικρότερο, ανάποδα — αλλά ποτέ 0 στην αρχή!',
+  extreme: 'Ο μεγαλύτερος αριθμός με k ψηφία έχει παντού 9. Ο μικρότερος είναι 1 και μετά μηδενικά (ένας αριθμός δεν ξεκινά με 0).',
+  round: 'Κοιτάμε το ψηφίο ακριβώς δεξιά από τη θέση στρογγυλοποίησης: 0–4 → το ψηφίο της θέσης μένει ίδιο, 5–9 → αυξάνεται κατά 1. Όλα τα δεξιά γίνονται 0.',
+  estimate: 'Για να υπολογίσουμε «περίπου», στρογγυλοποιούμε πρώτα τους αριθμούς και μετά κάνουμε την πράξη με το μυαλό.',
+  nline: 'Στην αριθμογραμμή ο αριθμός στρογγυλοποιείται προς την άκρη που είναι πιο κοντά. Στη μέση ακριβώς (…500) πάει προς τα πάνω.'
+};
+
+const G = {};
+
+G.natural = d => {
+  const nat = [0, 1, 7, 21, 100, 365, 1000, 2024, 59780, 13, 6];
+  const non = ['-1', '-3', '2,50', '1/4', '0,5', '3,14', '-10', '1/2', '7,5', '-100', '12,75'];
+  const v = rnd(1, d >= 2 ? 3 : 2);
+  if (v === 3) {
+    const sent = [
+      { t: 'Φέτος στο τμήμα μας είμαστε 21 μαθητές και μαθήτριες.', ok: true },
+      { t: 'Κάνουμε 13 διαφορετικά μαθήματα με 6 εκπαιδευτικούς.', ok: true },
+      { t: 'Στο σχολείο ήρθαμε με 0 καθυστέρηση.', ok: true },
+      { t: 'Το βιβλίο έχει 183 σελίδες.', ok: true },
+      { t: 'Για το υπόγειο πατάμε στον ανελκυστήρα το κουμπί -1.', ok: false },
+      { t: 'Έχω 2,50 € για το κυλικείο.', ok: false },
+      { t: 'Το πρωί άργησα 1/4 της ώρας.', ok: false },
+      { t: 'Η θερμοκρασία έπεσε στους -3 βαθμούς.', ok: false },
+      { t: 'Ήπια 0,5 λίτρο νερό.', ok: false }
+    ];
+    const good = pick(sent.filter(s => s.ok)), bads = shuffle(sent.filter(s => !s.ok)).slice(0, 3);
+    return mc('Σε ποια πρόταση ο αριθμός είναι <b>φυσικός</b>;', shuffle([good].concat(bads)).map(s => ({ label: s.t, ok: s.ok })),
+      `Φυσικός είναι μόνο ο αριθμός της πρότασης «${good.t}». Τα -1, 2,50, 1/4, -3, 0,5 δεν είναι φυσικοί.`, { col: true, rule: RULES.natural });
+  }
+  if (v === 1) {
+    const good = pick(nat), bads = shuffle(non).slice(0, 3);
+    return mc('Ποιος από τους παρακάτω είναι <b>φυσικός αριθμός</b>;', shuffle([{ label: fmt(good), ok: true }].concat(bads.map(b => ({ label: b, ok: false })))),
+      `Το ${N(good)} είναι φυσικός${good === 0 ? ' — το 0 είναι ο μικρότερος φυσικός αριθμός' : ''}. Τα ${bads.join(', ')} δεν είναι.`, { rule: RULES.natural });
+  }
+  const bad = pick(non), goods = shuffle(nat).slice(0, 3);
+  return mc('Ποιος από τους παρακάτω <b>ΔΕΝ</b> είναι φυσικός αριθμός;', shuffle([{ label: bad, ok: true }].concat(goods.map(g => ({ label: fmt(g), ok: false })))),
+    `Το ${bad} δεν είναι φυσικός${bad.startsWith('-') ? ' (είναι αρνητικός)' : bad.includes('/') ? ' (είναι κλάσμα)' : ' (είναι δεκαδικός)'}. Τα ${goods.map(fmt).join(', ')} είναι φυσικοί.`, { rule: RULES.natural });
+};
+
+G.nextprev = (d, t) => {
+  const k = kFor(d, t), next = Math.random() < .5;
+  let n;
+  const r = Math.random();
+  if (r < .45) { // πολλά 9 ή 0 στο τέλος → κρατούμενο
+    const z = rnd(1, Math.max(1, k - 1));
+    n = genNum(k - z, .1) * P10(z) + (next ? P10(z) - 1 : 0);
+    if (!next && n === 0) n = P10(k - 1);
+  } else n = genNum(k, .15);
+  if (!next && n === 0) n = 10;
+  const ans = next ? n + 1 : n - 1;
+  const cands = next ? [n + 10, n + 100, n - 1, n + 2, n + 11, Number(String(n + 1) + '0')] : [n - 10, n - 100, n + 1, n - 2, n - 11];
+  return mc(`Ποιος είναι ο <b>${next ? 'επόμενος' : 'προηγούμενος'}</b> φυσικός αριθμός του <span class="big">${fmt(n)}</span>`, distinctOpts(ans, shuffle(cands)),
+    `${next ? 'Επόμενος' : 'Προηγούμενος'} σημαίνει ${next ? '+1' : '−1'}: ${N(n)} ${next ? '+' : '−'} 1 = <b>${fmt(ans)}</b>.${String(n).endsWith(next ? '9' : '0') ? ' Πρόσεξε το κρατούμενο: αλλάζουν περισσότερα ψηφία!' : ''}`, { rule: RULES.nextprev });
+};
+
+G.evenodd = (d, t) => {
+  const k = kFor(d, t);
+  if (Math.random() < .5) {
+    const n = genNum(k); const even = n % 2 === 0;
+    return mc(`Ο αριθμός <span class="big">${fmt(n)}</span> είναι…`, shuffle([{ label: 'Άρτιος (ζυγός)', ok: even }, { label: 'Περιττός (μονός)', ok: !even }]),
+      `Το τελευταίο ψηφίο είναι <b>${n % 10}</b>, άρα ο ${N(n)} είναι <b>${even ? 'άρτιος' : 'περιττός'}</b>.`, { rule: RULES.evenodd });
+  }
+  const wantEven = Math.random() < .5;
+  const make = ev => { let x; do { x = genNum(k); } while ((x % 2 === 0) !== ev); return x; };
+  const good = make(wantEven); const bads = []; while (bads.length < 3) { const b = make(!wantEven); if (!bads.includes(b)) bads.push(b); }
+  return mc(`Ποιος αριθμός είναι <b>${wantEven ? 'άρτιος' : 'περιττός'}</b>;`, distinctOpts(good, bads), `Ο ${N(good)} τελειώνει σε <b>${good % 10}</b>, άρα είναι ${wantEven ? 'άρτιος' : 'περιττός'}. Οι άλλοι τελειώνουν σε ${bads.map(b => b % 10).join(', ')}.`, { rule: RULES.evenodd });
+};
+
+G.pattern = (d, t) => {
+  const steps = { 1: [1, 2, 2, 3, 5, 10], 2: [2, 5, 10, 100, 1000], 3: [3, 10, 100, 1000, 25], 4: [10, 100, 1000, 10000, 50], 5: [100, 1000, 10000, 100000, 250] }[d];
+  const s = pick(steps), down = d >= 3 && Math.random() < .4;
+  const start = down ? genNum(kFor(d, t)) + 5 * s : (d === 1 ? pick([0, 1, s, rnd(0, 20)]) : genNum(kFor(d, t) - 1, .1) * (d >= 3 ? 10 : 1));
+  const seq = []; for (let i = 0; i < 5; i++) seq.push(down ? start - i * s : start + i * s);
+  const hole = pick([2, 3, 4]); const ans = seq[hole];
+  const shown = seq.map((v, i) => i === hole ? '<mark>__</mark>' : fmt(v)).join(', ');
+  return mc(`Ποιος αριθμός λείπει από το μοτίβο;<span class="big">${shown}</span>`, distinctOpts(ans, shuffle([ans + s, ans - s, ans + 1, ans - 1, ans + 2 * s, ans * 2])),
+    `Κάθε αριθμός είναι ο προηγούμενος <b>${down ? '−' : '+'} ${fmt(s)}</b>: ${seq.map(fmt).join(' → ')}.`, { rule: RULES.pattern });
+};
+
+G.digits = (d, t) => {
+  const k = kFor(d, t) + (d === 1 ? 1 : 0), n = genNum(k, .25);
+  if (d >= 2 && Math.random() < .4) {
+    const set = uniq(digits(n)).length;
+    return mc(`Πόσα <b>διαφορετικά</b> ψηφία χρησιμοποιήσαμε για να γράψουμε τον <span class="big">${fmt(n)}</span>`, distinctOpts(set, shuffle([set + 1, set - 1, k, set + 2, k - 1])),
+      `Τα διαφορετικά ψηφία είναι: <b>${uniq(digits(n)).join(', ')}</b> — δηλαδή ${set}. Συνολικά όμως ο αριθμός έχει ${k} ψηφία.`, { rule: RULES.digits });
+  }
+  return mc(`Πόσα ψηφία έχει ο αριθμός <span class="big">${fmt(n)}</span>`, distinctOpts(k, shuffle([k + 1, k - 1, k + 2, k - 2, uniq(digits(n)).length])),
+    `Ο ${N(n)} έχει <b>${k}</b> ψηφία (${digits(n).join(' ')}). Οι τελείες δεν μετράνε.`, { rule: RULES.digits });
+};
+
+G.place = (d, t) => {
+  const k = Math.max(4, kFor(d, t)), n = genNum(k, .12);
+  let p; do { p = rnd(0, k - 1); } while (digitAt(n, p) === 0);
+  const dg = digitAt(n, p);
+  const cand = shuffle([p + 1, p - 1, p + 3, p - 3, p + 2, p - 2].filter(x => x >= 0 && x < 12));
+  const opts = shuffle([{ label: `${POS[p].gen} (${POS[p].abbr})`, ok: true }].concat(cand.slice(0, 3).map(x => ({ label: `${POS[x].gen} (${POS[x].abbr})`, ok: false }))));
+  return mc(`Στον αριθμό <span class="big">${fmtHL(n, p)}</span> το σημειωμένο ψηφίο <b>${dg}</b> είναι στη θέση των…`, opts,
+    `Μετράμε από δεξιά: το ${dg} είναι στη θέση των <b>${POS[p].gen}</b> και αξίζει ${fmt(dg * P10(p))}.${pvTable(n, p)}`, { col: true, rule: RULES.place });
+};
+
+G.value = (d, t) => {
+  const k = Math.max(3, kFor(d, t)), n = genNum(k, .12);
+  let p; do { p = rnd(0, k - 1); } while (digitAt(n, p) === 0);
+  const dg = digitAt(n, p), ans = dg * P10(p);
+  return mc(`Ποια είναι η <b>αξία</b> του σημειωμένου ψηφίου <b>${dg}</b> στον αριθμό <span class="big">${fmtHL(n, p)}</span>`, distinctOpts(ans, shuffle([ans * 10, ans / 10, dg, ans * 100, p >= 1 ? ans / 100 : ans * 1000].map(Math.round).filter(x => x > 0))),
+    `Το ${dg} βρίσκεται στις <b>${POS[p].name}</b>, άρα αξίζει ${dg} × ${fmt(P10(p))} = <b>${fmt(ans)}</b>.${pvTable(n, p)}`, { rule: RULES.value });
+};
+
+G.expand = (d, t) => {
+  const k = Math.max(4, kFor(d, t)); let n; do { n = genNum(k, .3); } while (expand(n).length < 3);
+  const terms = expand(n), i = rnd(0, terms.length - 1), ans = terms[i];
+  const shown = terms.map((v, j) => j === i ? '<mark>___</mark>' : fmt(v)).join(' + ');
+  const dg = Number(String(ans)[0]);
+  return mc(`Τι λείπει από την ανάλυση;<span class="big" style="font-size:clamp(17px,5vw,24px)">${fmt(n)} = ${shown}</span>`, distinctOpts(ans, shuffle([ans * 10, ans / 10, dg, ans * 100, ans / 100, dg * 10].map(Math.round).filter(x => x > 0))),
+    `${N(n)} = ${terms.map(v => v === ans ? `<b>${fmt(v)}</b>` : fmt(v)).join(' + ')}. Λείπει η αξία του ψηφίου ${dg}: <b>${fmt(ans)}</b>.`, { rule: RULES.expand });
+};
+
+G.words = (d, t) => {
+  const k = Math.max(4, kFor(d, t)); const n = genNum(k, .35);
+  const alt = uniq([n * 1000, Math.floor(n / 10), n * 10, swapGroup(n), n + P10(rnd(0, k - 2)) * 9, dropZero(n)].filter(x => x && x !== n && x < 1e12));
+  if (Math.random() < .5) return mc(`Ποιος αριθμός είναι ο:<span class="big" style="font-size:clamp(16px,4.6vw,20px);line-height:1.35">«${words(n)}»</span>`, distinctOpts(n, shuffle(alt)),
+    `«${words(n)}» γράφεται <b>${fmt(n)}</b>. Προσοχή σε κάθε τριάδα — όσες λείπουν γίνονται 000.${pvTable(n, -1)}`, { rule: RULES.words });
+  const opts = shuffle([{ label: words(n), ok: true }].concat(shuffle(alt).slice(0, 3).map(v => ({ label: words(v), ok: false }))));
+  return mc(`Πώς διαβάζεται ο αριθμός <span class="big">${fmt(n)}</span>`, opts, `${N(n)} διαβάζεται: <b>${words(n)}</b>.${pvTable(n, -1)}`, { col: true, rule: RULES.words });
+  function swapGroup(x) { const s = fmt(x).split('.'); if (s.length < 2) return 0; const i = rnd(0, s.length - 2); [s[i], s[i + 1]] = [s[i + 1], s[i]]; return Number(s.join('')); }
+  function dropZero(x) { const s = String(x); const i = s.indexOf('0', 1); return i < 0 ? 0 : Number(s.slice(0, i) + s.slice(i + 1)); }
+};
+
+G.ten = d => {
+  const v = rnd(1, 3);
+  if (v === 1) {
+    const p = rnd(1, Math.min(5, d + 3));
+    return mc(`<span class="big">${fmt(P10(p))} = ___ × ${fmt(P10(p - 1))}</span>`, distinctOpts(10, [100, 1, 1000, P10(p)]), `Κάθε θέση αξίζει <b>δεκαπλάσια</b> από τη δεξιά της: ${fmt(P10(p))} = <b>10</b> × ${fmt(P10(p - 1))}.`, { rule: RULES.ten });
+  }
+  if (v === 2) {
+    const p = rnd(1, Math.min(6, d + 3));
+    return mc(`<span class="big">${fmt(P10(p))} = 10 × ___</span>`, distinctOpts(P10(p - 1), [P10(p), P10(p - 2), P10(p + 1), 10]), `${fmt(P10(p))} = 10 × <b>${fmt(P10(p - 1))}</b> — η αξία κάθε θέσης είναι το ένα δέκατο της αριστερής της.`, { rule: RULES.ten });
+  }
+  const p = rnd(1, Math.min(4, d + 1)), q = rnd(p + 1, p + 3), a = rnd(2, 9), n = a * P10(q), ans = a * P10(q - p);
+  return mc(`Πόσες <b>${POS[p].name}</b> έχει ο αριθμός <span class="big">${fmt(n)}</span>`, distinctOpts(ans, shuffle([ans * 10, ans / 10, a, ans * 100].map(Math.round))),
+    `${N(n)} = <b>${fmt(ans)}</b> × ${fmt(P10(p))}, δηλαδή ${fmt(ans)} ${POS[p].name.toLowerCase()}.`, { rule: RULES.ten });
+};
+
+G.sumvals = (d, t) => {
+  const k = Math.max(4, kFor(d, t)), n = genNum(k, .3);
+  const ds = digits(n).reduce((a, b) => a + b, 0);
+  return mc(`Το <b>άθροισμα της αξίας</b> των ψηφίων του <span class="big">${fmt(n)}</span> είναι…`, distinctOpts(n, shuffle([ds, Math.floor(n / 10), n * 10, Number(String(n).replace(/0/g, '')) ])),
+    `Αν προσθέσουμε την αξία κάθε ψηφίου ξαναφτιάχνουμε τον αριθμό: ${expand(n).map(fmt).join(' + ')} = <b>${fmt(n)}</b>. (Το άθροισμα των ψηφίων, ${ds}, είναι άλλο πράγμα!)`, { rule: RULES.expand });
+};
+
+G.compare = (d, t) => {
+  const k = Math.max(3, kFor(d, t)); let a, b, why;
+  const v = Math.random();
+  if (v < .35) { // διαφορετικό πλήθος ψηφίων, ο μικρός με μεγάλα ψηφία
+    a = Number('9'.repeat(k - 1).split('').map(c => rnd(6, 9)).join('')); b = genNum(k, .4);
+    why = `Ο ${N(b)} έχει ${k} ψηφία και ο ${N(a)} έχει ${k - 1}: περισσότερα ψηφία = μεγαλύτερος, όσο «μεγάλα» κι αν είναι τα ψηφία του άλλου.`;
+  } else if (v < .5 && d >= 3) { a = genNum(k, .2); b = a; why = `Οι δύο αριθμοί είναι ακριβώς ίδιοι, ψηφίο προς ψηφίο — άρα είναι <b>ίσοι</b>.`; }
+  else { // ίδιο πλήθος, διαφορά σε μία θέση
+    a = genNum(k, .15); const p = rnd(0, k - 2); const da = digitAt(a, p); let db; do { db = rnd(0, 9); } while (db === da);
+    b = a + (db - da) * P10(p);
+    why = `Ίδιο πλήθος ψηφίων (${k}). Συγκρίνουμε από αριστερά: πρώτη διαφορά στις <b>${POS[p].name}</b>, ${Math.max(da, db)} &gt; ${Math.min(da, db)}.`;
+  }
+  if (Math.random() < .5) [a, b] = [b, a];
+  const sym = a < b ? '<' : a > b ? '>' : '=';
+  return mc(`Ποιο σύμβολο ταιριάζει;<span class="big">${fmt(a)} <mark>?</mark> ${fmt(b)}</span>`, shuffle(['<', '>', '='].map(s => ({ label: s, ok: s === sym }))),
+    `${N(a)} <b>${sym}</b> ${N(b)}. ${why}`, { rule: RULES.compare });
+};
+
+G.order = (d, t) => {
+  const k = Math.max(3, kFor(d, t)), cnt = d === 1 ? 3 : 4, asc = d <= 2 || Math.random() < .6;
+  const base = genNum(k, .15); const set = [base];
+  while (set.length < cnt) {
+    const r = Math.random(); let x;
+    if (r < .3) x = Math.floor(base / 10) + rnd(0, 9); // λιγότερα ψηφία, μοιάζει
+    else if (r < .6) { const p = rnd(0, k - 1); x = base + (rnd(1, 9) - digitAt(base, p)) * P10(p); }
+    else x = genNum(k + (Math.random() < .3 ? 1 : 0), .15);
+    if (x > 0 && !set.includes(x)) set.push(x);
+  }
+  const sorted = set.slice().sort((x, y) => asc ? x - y : y - x);
+  return { kind: 'order', text: `Πάτα τους αριθμούς με τη σειρά, από τον <b>${asc ? 'μικρότερο στον μεγαλύτερο' : 'μεγαλύτερο στον μικρότερο'}</b>.`, items: shuffle(set), answer: sorted,
+    explain: `Η σωστή σειρά: <b>${sorted.map(fmt).join(asc ? ' &lt; ' : ' &gt; ')}</b>. Πρώτα μετράμε ψηφία, μετά συγκρίνουμε από αριστερά.`, rule: RULES.compare };
+};
+
+G.build = (d, t) => {
+  const cnt = d >= 4 ? 4 : 3, big = Math.random() < .5;
+  const ds = []; while (ds.length < cnt) { const x = rnd(d >= 3 && !ds.includes(0) && Math.random() < .35 ? 0 : 1, 9); if (!ds.includes(x)) ds.push(x); }
+  const sortedD = ds.slice().sort((a, b) => b - a);
+  let ans;
+  if (big) ans = Number(sortedD.join(''));
+  else { const asc = sortedD.slice().reverse(); if (asc[0] === 0) { const i = asc.findIndex(x => x > 0); [asc[0], asc[i]] = [asc[i], asc[0]]; } ans = Number(asc.join('')); }
+  return { kind: 'build', text: `Με τα ψηφία <b>${shuffle(ds).join(', ')}</b> (μία φορά το καθένα) φτιάξε τον <b>${big ? 'ΜΕΓΑΛΥΤΕΡΟ' : 'ΜΙΚΡΟΤΕΡΟ'}</b> ${cnt === 3 ? 'τριψήφιο' : 'τετραψήφιο'} αριθμό.`, digits: shuffle(ds), answer: String(ans),
+    explain: `${big ? 'Βάζουμε το μεγαλύτερο ψηφίο μπροστά και συνεχίζουμε φθίνοντας' : 'Βάζουμε το μικρότερο ψηφίο μπροστά και συνεχίζουμε αύξοντα'}${!big && ds.includes(0) ? ' — αλλά το 0 δεν μπορεί να είναι πρώτο, πάει δεύτερο' : ''}: <b>${fmt(ans)}</b>.`, rule: RULES.build };
+};
+
+G.extreme = (d, t) => {
+  const k = Math.max(2, Math.min(kFor(d, t), 9)), big = Math.random() < .5, kw = ['', 'μονοψήφιος', 'διψήφιος', 'τριψήφιος', 'τετραψήφιος', 'πενταψήφιος', 'εξαψήφιος', 'επταψήφιος', 'οκταψήφιος', 'εννιαψήφιος'][k];
+  const ans = big ? P10(k) - 1 : P10(k - 1);
+  const cands = big ? [P10(k) - 10, P10(k), P10(k - 1) * 9, P10(k) - 100, P10(k + 1) - 1] : [P10(k - 1) + 1, P10(k - 1) - 1, Number('1'.repeat(k)), P10(k), P10(k - 2)];
+  return mc(`Ποιος είναι ο <b>${big ? 'μεγαλύτερος' : 'μικρότερος'}</b> ${kw} αριθμός;`, distinctOpts(ans, shuffle(cands)),
+    `${big ? `Ο μεγαλύτερος ${kw} έχει ${k} εννιάρια` : `Ο μικρότερος ${kw} είναι το 1 με ${k - 1} μηδενικά — δεν ξεκινάμε με 0`}: <b>${fmt(ans)}</b>.`, { rule: RULES.extreme });
+};
+
+G.evenafter = (d, t) => {
+  const k = Math.max(3, Math.min(kFor(d, t), 7)), n = genNum(k, .1), even = Math.random() < .5, after = Math.random() < .5;
+  let ans = after ? n + 1 : n - 1; while ((ans % 2 === 0) !== even) ans += after ? 1 : -1;
+  return mc(`Ποιος είναι ο <b>${after ? 'μικρότερος' : 'μεγαλύτερος'} ${even ? 'άρτιος' : 'περιττός'}</b> αριθμός που είναι <b>${after ? 'μεγαλύτερος' : 'μικρότερος'}</b> από το <span class="big">${fmt(n)}</span>`,
+    distinctOpts(ans, shuffle([ans + 1, ans - 1, ans + 2, ans - 2, n, ans + 10])), `Πάμε ${after ? 'προς τα πάνω' : 'προς τα κάτω'} από το ${N(n)} μέχρι τον πρώτο ${even ? 'άρτιο' : 'περιττό'}: <b>${fmt(ans)}</b> (τελειώνει σε ${ans % 10}).`, { rule: RULES.evenodd });
+};
+
+G.countarr = () => {
+  const z = Math.random() < .5; const ds = []; while (ds.length < 3) { const x = rnd(1, 9); if (!ds.includes(x)) ds.push(x); } if (z) ds[2] = 0;
+  const all = []; for (const a of ds) for (const b of ds) for (const c of ds) if (a !== b && b !== c && a !== c && a !== 0) all.push(Number(`${a}${b}${c}`));
+  all.sort((a, b) => a - b);
+  return mc(`Πόσους <b>διαφορετικούς τριψήφιους</b> αριθμούς φτιάχνουμε με τα ψηφία <b>${shuffle(ds).join(', ')}</b> (μία φορά το καθένα);`, distinctOpts(all.length, [6, 4, 3, 5, 9].filter(x => x !== all.length)),
+    `Είναι ${all.length}: <b>${all.join(', ')}</b>.${z ? ' Οι «αριθμοί» που ξεκινούν με 0 δεν είναι τριψήφιοι!' : ''}`, { rule: RULES.extreme });
+};
+
+G.round = (d, t) => {
+  const k = Math.max(4, kFor(d, t)); let n, p;
+  n = genNum(k, .12); p = rnd(1, k - 2);
+  if (d >= 4 && Math.random() < .4) { // κρατούμενο 9→10
+    n = n - digitAt(n, p) * P10(p) + 9 * P10(p); n = n - digitAt(n, p - 1) * P10(p - 1) + rnd(5, 9) * P10(p - 1);
+  }
+  const ans = roundAt(n, p), right = digitAt(n, p - 1), up = right >= 5;
+  const other = up ? ans - P10(p) : ans + P10(p);
+  return mc(`Στρογγυλοποίησε τον <span class="big">${fmtHL(n, p)}</span> <b>${POS[p].sto}</b>.`, distinctOpts(ans, shuffle([other, roundAt(n, p - 1), roundAt(n, p + 1), Math.floor(n / P10(p)) * P10(p) + (up ? 0 : P10(p)), n, roundAt(n, p - 2)])),
+    `Θέση: ${POS[p].name} (το ${digitAt(n, p)}). Δεξιά του είναι το <b>${right}</b> → ${up ? '5–9, άρα το ψηφίο αυξάνεται κατά 1' : '0–4, άρα το ψηφίο μένει ίδιο'} και τα υπόλοιπα γίνονται 0: <b>${fmt(ans)}</b>.${digitAt(n, p) === 9 && up ? ' Το 9+1 δίνει κρατούμενο στην επόμενη θέση!' : ''}`, { rule: RULES.round });
+};
+
+G.roundwhere = (d, t) => {
+  const k = Math.max(4, kFor(d, t)); let n, p, r, tries = 0;
+  do { n = genNum(k, .1); p = rnd(1, k - 2); r = roundAt(n, p); tries++; } while (tries < 50 && (r === roundAt(n, p - 1) || r === roundAt(n, p + 1) || r === n));
+  const cand = [p - 1, p + 1, p - 2, p + 2].filter(x => x >= 1 && x < 12);
+  const opts = shuffle([{ label: POS[p].name + ` (${POS[p].abbr})`, ok: true }].concat(shuffle(cand).slice(0, 3).map(x => ({ label: POS[x].name + ` (${POS[x].abbr})`, ok: false }))));
+  return mc(`Ο <span class="num">${fmt(n)}</span> μετά τη στρογγυλοποίηση έγινε <span class="num">${fmt(r)}</span>. Σε ποια <b>θέση</b> έγινε η στρογγυλοποίηση;<span class="big">${fmt(n)} → ${fmt(r)}</span>`, opts,
+    `Τα ψηφία άλλαξαν από τη θέση των <b>${POS[p].name}</b> και δεξιά: ${fmtHL(n, p)} → ${fmt(r)}.`, { col: true, rule: RULES.round });
+};
+
+G.estimate = (d, t) => {
+  const v = d >= 5 ? rnd(1, 4) : rnd(1, 2);
+  if (v <= 2) { // άθροισμα ή διαφορά
+    const k = Math.max(3, Math.min(kFor(d, t), 6)), p = k - 1; let a, b, ans, tries = 0;
+    do { a = genNum(k, .1); b = genNum(k, .1); if (v === 2 && b > a) [a, b] = [b, a]; ans = v === 1 ? roundAt(a, p) + roundAt(b, p) : roundAt(a, p) - roundAt(b, p); tries++; }
+    while (tries < 60 && (ans !== roundAt(v === 1 ? a + b : a - b, p) || ans <= 0));
+    const op = v === 1 ? '+' : '−';
+    return mc(`<b>Περίπου</b> πόσο είναι <span class="big">${fmt(a)} ${op} ${fmt(b)}</span>`, distinctOpts(ans, shuffle([ans + P10(p), ans - P10(p), ans * 10, ans + 2 * P10(p), Math.round(ans / 10)])),
+      `Στρογγυλοποιούμε ${POS[p].sto}: ${fmt(roundAt(a, p))} ${op} ${fmt(roundAt(b, p))} = <b>${fmt(ans)}</b>. (Ακριβώς: ${fmt(v === 1 ? a + b : a - b)}.)`, { rule: RULES.estimate });
+  }
+  if (v === 3) { // γινόμενο
+    const a = rnd(11, 49) * 10 + rnd(0, 9), b = rnd(11, 49) * 10 + rnd(0, 9), ra = roundAt(a, 2), rb = roundAt(b, 2), ans = ra * rb;
+    return mc(`<b>Περίπου</b> πόσο είναι <span class="big">${fmt(a)} × ${fmt(b)}</span>`, distinctOpts(ans, shuffle([ans / 10, ans * 10, ans + ra * 100, ans - rb * 100].map(Math.round))),
+      `Στρογγυλοποιούμε τους παράγοντες στις Εκατοντάδες: ${fmt(ra)} × ${fmt(rb)} = <b>${fmt(ans)}</b>. (Ακριβώς: ${fmt(a * b)}.)`, { rule: RULES.estimate });
+  }
+  const q = rnd(2, 9), ans = rnd(2, 9) * 100, n = ans * q + rnd(-40, 40);
+  return mc(`<b>Περίπου</b> πόσο είναι <span class="big">${fmt(n)} : ${q}</span>`, distinctOpts(ans, shuffle([ans * 10, ans / 10, ans + 100, ans - 100].map(Math.round))),
+    `Ψάχνουμε έναν κοντινό αριθμό που διαιρείται ακριβώς με το ${q}: ${fmt(ans * q)} : ${q} = <b>${fmt(ans)}</b>.`, { rule: RULES.estimate });
+};
+
+G.nline = (d, t) => {
+  const k = Math.max(3, Math.min(kFor(d, t), 7)), p = rnd(Math.max(1, k - 3), k - 1);
+  let n; do { n = genNum(k, .15); } while (n % P10(p) === 0 || n % P10(p) === P10(p) / 2);
+  const lo = Math.floor(n / P10(p)) * P10(p), hi = lo + P10(p), ans = roundAt(n, p);
+  const x = 40 + 300 * (n - lo) / (hi - lo);
+  const svg = `<svg class="nline" viewBox="0 0 380 70" aria-hidden="true"><line x1="40" y1="34" x2="340" y2="34" stroke="#5e3a16" stroke-width="3" stroke-linecap="round"/>
+    ${[40, 190, 340].map(cx => `<line x1="${cx}" y1="26" x2="${cx}" y2="42" stroke="#5e3a16" stroke-width="3" stroke-linecap="round"/>`).join('')}
+    <text x="40" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#2b1b0e">${fmt(lo)}</text>
+    <text x="190" y="62" text-anchor="middle" font-size="12" fill="#7a5a3a">${fmt(lo + P10(p) / 2)}</text>
+    <text x="340" y="62" text-anchor="middle" font-size="14" font-weight="700" fill="#2b1b0e">${fmt(hi)}</text>
+    <circle cx="${x.toFixed(1)}" cy="34" r="8" fill="#f97316" stroke="#fff" stroke-width="3"/>
+    <text x="${x.toFixed(1)}" y="16" text-anchor="middle" font-size="14" font-weight="800" fill="#c2410c">${fmt(n)}</text></svg>`;
+  return mc(`Ο <span class="num">${fmt(n)}</span> βρίσκεται ανάμεσα στο ${fmt(lo)} και στο ${fmt(hi)}. Σε ποιον είναι <b>πιο κοντά</b>;`, shuffle([lo, hi].map(v => ({ v, ok: v === ans }))),
+    `Από το ${fmt(lo)} απέχει ${fmt(n - lo)}, από το ${fmt(hi)} απέχει ${fmt(hi - n)}. Πιο κοντά στο <b>${fmt(ans)}</b> — αυτή είναι η στρογγυλοποίησή του ${POS[p].sto}.`, { visual: svg, rule: RULES.nline });
+};
+
+const FACTS = [
+  { d: 1, q: 'Ποιος είναι ο <b>μικρότερος</b> φυσικός αριθμός;', a: ['0', '1', '-1', '10'], ex: 'Ο μικρότερος φυσικός αριθμός είναι το <b>0</b>. Δεν έχει προηγούμενο.', r: 'natural' },
+  { d: 1, q: 'Ποιος είναι ο <b>μεγαλύτερος</b> φυσικός αριθμός;', a: ['Δεν υπάρχει', '999.999.999', '1.000.000.000', '9.999.999.999'], ex: 'Μεγαλύτερος φυσικός <b>δεν υπάρχει</b>: όποιον κι αν πεις, υπάρχει ο επόμενός του.', r: 'nextprev' },
+  { d: 1, q: 'Πόσα ψηφία χρησιμοποιούμε για να γράψουμε <b>όλους</b> τους φυσικούς αριθμούς;', a: ['10', '9', '100', 'Άπειρα'], ex: 'Μόνο <b>10 ψηφία</b>: 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 — με αυτά γράφονται όλοι οι αριθμοί.', r: 'natural' },
+  { d: 1, q: 'Ποιος φυσικός αριθμός <b>δεν έχει προηγούμενο</b>;', a: ['Το 0', 'Το 1', 'Το 10', 'Όλοι έχουν'], ex: 'Το <b>0</b> είναι ο μικρότερος φυσικός, άρα δεν έχει προηγούμενο — μόνο επόμενο, το 1.', r: 'nextprev' },
+  { d: 1, q: 'Ο επόμενος φυσικός αριθμός του <span class="num">1.000</span> είναι ο…', a: ['1.001', '1.010', '1.100', '2.000'], ex: '1.000 + 1 = <b>1.001</b>.', r: 'nextprev' },
+  { d: 1, q: 'Η Αγγελική λέει: «Αν ένας αριθμός γράφεται μόνο με το ψηφίο 9, ο επόμενός του έχει ένα ψηφίο παραπάνω». Έχει δίκιο;', a: ['Ναι: 999 → 1.000', 'Όχι: 999 → 990', 'Μόνο για το 9', 'Μόνο για το 99'], ex: 'Έχει δίκιο: 9 → 10, 99 → 100, 999 → <b>1.000</b>. Το κρατούμενο δημιουργεί νέα θέση.', r: 'nextprev' },
+  { d: 2, q: 'Ο προηγούμενος αριθμός του <span class="num">10.000.000</span> είναι ο…', a: ['9.999.999', '99.999.999', '9.099.999', '10.000.001'], ex: '10.000.000 − 1 = <b>9.999.999</b> (επτά εννιάρια).', r: 'nextprev' },
+  { d: 2, q: 'Στον αριθμό <span class="num">356.723.156</span> το ψηφίο 7 είναι στη θέση των…', a: ['Εκατοντάδων Χιλιάδων', 'Εκατοντάδων Εκατομμυρίων', 'Δεκάδων Χιλιάδων', 'Μονάδων Εκατομμυρίων'], ex: '356.<mark>7</mark>23.156 → το 7 είναι στις <b>Εκατοντάδες Χιλιάδων</b> (αξίζει 700.000).', r: 'place', col: true },
+  { d: 2, q: 'Η αξία κάθε θέσης είναι ___ από την αμέσως <b>δεξιά</b> της.', a: ['Δεκαπλάσια', 'Διπλάσια', 'Εκατονταπλάσια', 'Ίση'], ex: 'Κάθε θέση αξίζει <b>δεκαπλάσια</b> από τη δεξιά της: 1, 10, 100, 1.000…', r: 'ten' },
+  { d: 2, q: 'Ο Αντρέι έγραψε «τρία δισεκατομμύρια τετρακόσιες πενήντα χιλιάδες έξι» ως <span class="num">3.450.006.000</span>. Σωστά;', a: ['Λάθος, είναι 3.000.450.006', 'Σωστά', 'Λάθος, είναι 3.450.006', 'Λάθος, είναι 3.450.000.006'], ex: 'Δεν υπάρχουν εκατομμύρια, άρα η τριάδα τους είναι 000: <b>3.000.450.006</b>.', r: 'words', col: true },
+  { d: 2, q: 'Στην ανάλυση <span class="num">6.752.180</span> = 6.000.000 + 700.000 + ___ + 2.000 + 100 + 80 λείπει το…', a: ['50.000', '500.000', '5.000', '500'], ex: 'Το 5 είναι στις Δεκάδες Χιλιάδων, άρα αξίζει <b>50.000</b>.', r: 'expand' },
+  { d: 3, q: 'Η Αγγελική έγραψε <span class="num">2.397.726 &lt; 235.987</span>. Ποιο είναι το λάθος της;', a: ['Δεν μέτρησε τα ψηφία: 7 ψηφία > 6 ψηφία', 'Κανένα, είναι σωστό', 'Έπρεπε να βάλει =', 'Συνέκρινε από τα δεξιά'], ex: 'Ο 2.397.726 έχει <b>7 ψηφία</b>, ο 235.987 έχει 6 — άρα είναι μεγαλύτερος, όχι μικρότερος.', r: 'compare', col: true },
+  { d: 3, q: 'Ο Νίκος λέει ότι ο μεγαλύτερος πενταψήφιος είναι ο <span class="num">99.990</span>. Έχει δίκιο;', a: ['Όχι, είναι ο 99.999', 'Ναι', 'Όχι, είναι ο 100.000', 'Όχι, είναι ο 90.000'], ex: 'Ο μεγαλύτερος πενταψήφιος έχει πέντε εννιάρια: <b>99.999</b>.', r: 'extreme', col: true },
+  { d: 3, q: 'Με τα ψηφία 1, 0 και 8 (μία φορά το καθένα) η Δανάη βρήκε <b>έξι</b> τριψήφιους. Έχει δίκιο;', a: ['Όχι, είναι 4 — το 0 δεν μπαίνει πρώτο', 'Ναι, 6', 'Όχι, είναι 3', 'Όχι, είναι 5'], ex: 'Οι τριψήφιοι είναι μόνο 4: 108, 180, 801, 810. Οι «018» και «081» δεν είναι τριψήφιοι.', r: 'extreme', col: true },
+  { d: 3, q: 'Γιατί <span class="num">2.398.726 &gt; 2.397.726</span>;', a: ['Στις Μονάδες Χιλιάδων 8 > 7', 'Έχει περισσότερα ψηφία', 'Στις Εκατοντάδες 7 > 7', 'Στις Δεκάδες Εκατομμυρίων 3 > 3'], ex: 'Ίδιο πλήθος ψηφίων· από αριστερά τα πρώτα τρία ψηφία είναι ίδια, στις <b>Μονάδες Χιλιάδων</b> 8 &gt; 7.', r: 'compare', col: true },
+  { d: 4, q: 'Ποιος αριθμός λέγεται <b>πάντα με ακρίβεια</b> και δεν στρογγυλοποιείται;', a: ['Ο αριθμός κυκλοφορίας αυτοκινήτου', 'Ο πληθυσμός μιας χώρας', 'Οι θεατές σε έναν αγώνα', 'Η απόσταση δύο πόλεων'], ex: 'Ο αριθμός κυκλοφορίας είναι <b>ταυτότητα</b>, όχι ποσότητα — ένα διαφορετικό ψηφίο σημαίνει άλλο αυτοκίνητο!', r: 'round', col: true },
+  { d: 4, q: 'Η Αγγελική υπολόγισε ότι <span class="num">5.134 + 6.237</span> είναι περίπου 11.000. Πώς σκέφτηκε;', a: ['5.000 + 6.000', '5.100 + 6.200', '5.134 + 6.237 ακριβώς', '6.000 + 6.000'], ex: 'Στρογγυλοποίησε στις Χιλιάδες: <b>5.000 + 6.000 = 11.000</b>.', r: 'estimate', col: true },
+  { d: 4, q: 'Η Δανάη υπολόγισε ότι <span class="num">8.978 − 4.209</span> είναι περίπου 4.800. Σε ποια θέση στρογγυλοποίησε;', a: ['Στις Εκατοντάδες', 'Στις Χιλιάδες', 'Στις Δεκάδες', 'Στις Μονάδες'], ex: '9.000 − 4.200 = <b>4.800</b>: στρογγυλοποίηση στις <b>Εκατοντάδες</b>.', r: 'estimate' },
+  { d: 4, q: 'Η στρογγυλοποίηση του <span class="num">83.456.057</span> στις ΕΧ δίνει…', a: ['83.500.000', '83.400.000', '83.460.000', '84.000.000'], ex: 'Θέση ΕΧ: το 4. Δεξιά του το <b>5</b> → ανεβαίνει: <b>83.500.000</b>.', r: 'round' },
+  { d: 5, q: 'Ο Νίκος υπολόγισε <span class="num">190 × 110</span> ≈ 20.000. Σε ποια θέση στρογγυλοποίησε τους παράγοντες;', a: ['Στις Εκατοντάδες: 200 × 100', 'Στις Δεκάδες: 190 × 110', 'Στις Χιλιάδες', 'Στις Μονάδες'], ex: '<b>200 × 100 = 20.000</b>: στρογγυλοποίηση στις Εκατοντάδες.', r: 'estimate', col: true },
+  { d: 5, q: 'Ο Αντρέι υπολόγισε <span class="num">3.565 : 6</span> ≈ 600. Πώς σκέφτηκε;', a: ['3.600 : 6 = 600', '3.000 : 6 = 500', '3.565 : 5', '4.000 : 6'], ex: 'Διάλεξε κοντινό αριθμό που διαιρείται ακριβώς: <b>3.600 : 6 = 600</b>.', r: 'estimate', col: true },
+  { d: 5, q: 'Ποιο ψηφίο έχει τη <b>μεγαλύτερη αξία</b> στον <span class="num">1.400.000.000</span>;', a: ['Το 1 (1.000.000.000)', 'Το 4 (400.000.000)', 'Το 0', 'Το 4 (4)'], ex: 'Το 1 είναι στα Δισεκατομμύρια: αξίζει <b>1.000.000.000</b>, περισσότερο από το 4 (400.000.000).', r: 'value', col: true }
+];
+G.fact = d => {
+  const pool = FACTS.filter(f => f.d === d || (d === 5 && Math.random() < .5)); const f = pick(pool.length ? pool : FACTS);
+  return mc(f.q, shuffle(f.a.map((label, i) => ({ label, ok: i === 0 }))), f.ex, { col: !!f.col, rule: RULES[f.r] });
+};
+
+const LEVELS = [
+  { id: 'meadow', name: 'Το Λιβάδι', icon: '🌼', topic: 'Οι φυσικοί αριθμοί', d: 1, n: 10,
+    intro: 'Στο Λιβάδι μαθαίνουμε ποιοι αριθμοί είναι φυσικοί, βρίσκουμε τον επόμενο και τον προηγούμενο, ξεχωρίζουμε άρτιους και περιττούς και συνεχίζουμε μοτίβα!',
+    types: ['natural', 'nextprev', 'evenodd', 'pattern', 'digits', 'fact', 'extreme', 'nextprev', 'natural', 'evenodd'] },
+  { id: 'forest', name: 'Το Δάσος', icon: '🌲', topic: 'Αξία θέσης ψηφίου', d: 2, n: 10,
+    intro: 'Στο Δάσος κάθε ψηφίο έχει τη θέση του! Μονάδες, Δεκάδες, Εκατοντάδες… ως τα Δισεκατομμύρια. Διαβάζουμε, γράφουμε και αναλύουμε μεγάλους αριθμούς.',
+    types: ['place', 'value', 'expand', 'words', 'ten', 'sumvals', 'digits', 'nextprev', 'fact', 'place'] },
+  { id: 'river', name: 'Το Ποτάμι', icon: '🏞️', topic: 'Σύγκριση και διάταξη', d: 3, n: 10,
+    intro: 'Στο Ποτάμι συγκρίνουμε: πρώτα μετράμε ψηφία, μετά κοιτάμε από αριστερά. Βάζουμε αριθμούς στη σειρά και φτιάχνουμε τον μεγαλύτερο ή τον μικρότερο από ψηφία.',
+    types: ['compare', 'order', 'build', 'extreme', 'evenafter', 'countarr', 'compare', 'order', 'fact', 'place'] },
+  { id: 'rock', name: 'Ο Βράχος', icon: '🪨', topic: 'Στρογγυλοποίηση', d: 4, n: 10,
+    intro: 'Στον Βράχο στρογγυλοποιούμε! Κοιτάμε το ψηφίο δεξιά: 0–4 μένει, 5–9 ανεβαίνει. Και υπολογίζουμε «περίπου» με το μυαλό.',
+    types: ['round', 'nline', 'roundwhere', 'estimate', 'round', 'compare', 'fact', 'round', 'estimate', 'nline'] },
+  { id: 'peak', name: 'Η Κορυφή', icon: '🏔️', topic: 'Όλα μαζί, δισεκατομμύρια!', d: 5, n: 12,
+    intro: 'Στην Κορυφή τα έχουμε όλα: τεράστιοι αριθμοί ως τα δισεκατομμύρια, κρατούμενα, μηδενικά και παγίδες. Δείξε ότι είσαι φυσικά… άσος!',
+    types: ['nextprev', 'place', 'words', 'compare', 'order', 'round', 'estimate', 'build', 'value', 'roundwhere', 'fact', 'expand', 'evenafter', 'nline', 'countarr', 'extreme'] }
+];
+const SPRINT_TYPES = ['natural', 'nextprev', 'evenodd', 'pattern', 'digits', 'place', 'value', 'expand', 'words', 'ten', 'compare', 'order', 'build', 'extreme', 'round', 'nline', 'estimate', 'evenafter', 'fact'];
+
+function makeQuestion(type, d, t) { const q = G[type](d, t); q.type = type; return q; }
+function buildLevel(lv) {
+  const types = shuffle(lv.types).slice(0, lv.n); // ποικιλία, χωρίς ίδιο τύπο σερί
+  for (let i = 1; i < types.length; i++) if (types[i] === types[i - 1]) { const j = types.findIndex((x, k) => k > i && x !== types[i]); if (j > 0) [types[i], types[j]] = [types[j], types[i]]; }
+  return types.map((type, i) => makeQuestion(type, lv.d, i / types.length));
+}
+function sprintQuestion(i) { const d = Math.min(5, 1 + Math.floor(i / 5)); return makeQuestion(pick(SPRINT_TYPES), d, Math.random()); }
+
+if (typeof module !== 'undefined') module.exports = { G, LEVELS, SPRINT_TYPES, buildLevel, sprintQuestion, words, fmt, FACTS, makeQuestion };
+</script>
+
+<script>
+/* ============ UI ============ */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const LS = {
+    get(k, d) { try { const v = localStorage.getItem('natural.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem('natural.' + k, JSON.stringify(v)); } catch {} }
+  };
+  const PASS = 0.7;
+  let soundOn = LS.get('sound', true);
+  let stars = LS.get('stars', {});          // {levelId: 0..3}
+  let bestSprint = LS.get('sprint', 0);
+  const S = { mode: 'level', lv: null, qs: [], i: 0, correct: 0, wrong: 0, streak: 0, score: 0, locked: false, timer: null, timeLeft: 0, sprintI: 0, hist: [] };
+
+  /* --- ήχος --- */
+  let ac = null;
+  function beep(freq, dur, type = 'sine', gain = .12, when = 0) {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume();
+      const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, ac.currentTime + when); g.gain.exponentialRampToValueAtTime(gain, ac.currentTime + when + .01); g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + when + dur);
+      o.connect(g).connect(ac.destination); o.start(ac.currentTime + when); o.stop(ac.currentTime + when + dur + .05);
+    } catch {}
+  }
+  const sfx = {
+    tap: () => beep(660, .06, 'triangle', .06),
+    ok: () => { beep(660, .1, 'triangle'); beep(990, .14, 'triangle', .12, .09); },
+    bad: () => beep(160, .25, 'sawtooth', .08),
+    win: () => [523, 659, 784, 1047].forEach((f, i) => beep(f, .18, 'triangle', .12, i * .12)),
+    tick: () => beep(880, .05, 'square', .04)
+  };
+  function setSoundUI() { $('btnSound').textContent = soundOn ? '🔊' : '🔇'; $('btnSoundStart').textContent = soundOn ? '🔊 Ήχος' : '🔇 Ήχος'; }
+  function toggleSound() { soundOn = !soundOn; LS.set('sound', soundOn); setSoundUI(); if (soundOn) sfx.tap(); }
+  $('btnSound').addEventListener('click', toggleSound); $('btnSoundStart').addEventListener('click', toggleSound);
+
+  /* --- οθόνες --- */
+  function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
+  const unlockedCount = () => { let u = 1; for (const lv of LEVELS) { if ((stars[lv.id] || 0) > 0) u++; else break; } return Math.min(u, LEVELS.length); };
+  const sprintUnlocked = () => (stars.peak || 0) > 0;
+  const starStr = (n, max = 3) => '★'.repeat(n) + '<span class="off">' + '★'.repeat(max - n) + '</span>';
+
+  function renderTrail() {
+    const ul = $('trail'); ul.innerHTML = ''; const unl = unlockedCount();
+    LEVELS.forEach((lv, i) => {
+      const li = document.createElement('li'); const b = document.createElement('button'); const locked = i >= unl;
+      b.className = 'stop' + (locked ? ' locked' : ''); b.type = 'button';
+      b.innerHTML = `<span class="ico">${locked ? '🔒' : lv.icon}</span><span class="t"><b>${i + 1}. ${lv.name}</b><span>${lv.topic}</span></span><span class="stars">${starStr(stars[lv.id] || 0)}</span>`;
+      if (!locked) b.addEventListener('click', () => { sfx.tap(); openIntro(lv); });
+      else b.addEventListener('click', () => foxSay('foxStartTxt', 'foxStart', `Πρώτα πέρασε τη στάση «${LEVELS[i - 1].name}» με τουλάχιστον 7 σωστές!`));
+      li.appendChild(b); ul.appendChild(li);
+    });
+    const li = document.createElement('li'); const b = document.createElement('button'); const locked = !sprintUnlocked();
+    b.className = 'stop sprint' + (locked ? ' locked' : ''); b.type = 'button';
+    b.innerHTML = `<span class="ico">${locked ? '🔒' : '⚡'}</span><span class="t"><b>Σπριντ Κορυφής</b><span>60″, όλα τα θέματα, +3″ κάθε σωστή</span></span><span class="stars">${bestSprint ? '🏆 ' + bestSprint : ''}</span>`;
+    b.addEventListener('click', () => { if (locked) foxSay('foxStartTxt', 'foxStart', 'Το Σπριντ ξεκλειδώνει όταν φτάσεις στην Κορυφή! 🏔️'); else { sfx.tap(); startSprint(); } });
+    li.appendChild(b); ul.appendChild(li);
+    const done = LEVELS.filter(l => stars[l.id] >= 3).length;
+    $('foxStartTxt').textContent = done === LEVELS.length ? 'Τρία αστέρια παντού! Είσαι φυσικά… άσος! Δοκίμασε το Σπριντ για ρεκόρ. ⚡' :
+      unl === 1 && !stars.meadow ? 'Γεια! Είμαι η Φυσούλα, η φύλακας του πάρκου. Ανεβαίνουμε το μονοπάτι ως την κορυφή;' :
+      `Καλώς ήρθες πίσω! Επόμενη στάση: ${LEVELS[Math.min(unl, LEVELS.length) - 1].name}. 🥾`;
+  }
+  function foxSay(txtId, faceId, msg) { $(txtId).textContent = msg; const f = $(faceId); f.classList.remove('hop'); void f.offsetWidth; f.classList.add('hop'); }
+
+  $('btnRules').addEventListener('click', () => { sfx.tap(); show('scrRules'); });
+  $('btnRulesBack').addEventListener('click', () => { sfx.tap(); show('scrStart'); });
+
+  function openIntro(lv) { S.lv = lv; $('introName').textContent = `${lv.icon} ${lv.name} — ${lv.topic}`; $('introTxt').textContent = lv.intro; show('scrIntro'); }
+  $('btnIntroBack').addEventListener('click', () => { sfx.tap(); show('scrStart'); });
+  $('btnGo').addEventListener('click', () => { sfx.tap(); startLevel(S.lv); });
+
+  /* --- παιχνίδι --- */
+  function resetState() { S.i = 0; S.correct = 0; S.wrong = 0; S.streak = 0; S.score = 0; S.locked = false; S.hist = []; $('streak').hidden = true; $('sheet').classList.remove('show'); }
+  function startLevel(lv) {
+    S.mode = 'level'; S.lv = lv; S.qs = buildLevel(lv); resetState(); stopTimer(); $('timer').hidden = true;
+    $('hudName').textContent = `${lv.icon} ${lv.name}`; renderProg(); show('scrPlay'); renderQ(S.qs[0]);
+  }
+  function startSprint() {
+    S.mode = 'sprint'; S.lv = null; resetState(); S.sprintI = 0; S.timeLeft = 60; $('timer').hidden = false; $('timer').classList.remove('low'); $('timerN').textContent = '60';
+    $('hudName').textContent = '⚡ Σπριντ Κορυφής'; $('prog').innerHTML = ''; show('scrPlay'); renderQ(sprintQuestion(0));
+    S.timer = setInterval(() => {
+      S.timeLeft--; $('timerN').textContent = S.timeLeft; if (S.timeLeft <= 10) { $('timer').classList.add('low'); sfx.tick(); }
+      if (S.timeLeft <= 0) { stopTimer(); endSprint(); }
+    }, 1000);
+  }
+  function stopTimer() { if (S.timer) clearInterval(S.timer); S.timer = null; }
+  function renderProg() {
+    const p = $('prog'); p.innerHTML = '';
+    for (let k = 0; k < S.qs.length; k++) { const i = document.createElement('i'); if (S.hist[k] === true) i.className = 'ok'; else if (S.hist[k] === false) i.className = 'bad'; else if (k === S.i) i.className = 'cur'; p.appendChild(i); }
+  }
+  const FOX_WAIT = ['Σκέψου με την ησυχία σου!', 'Μέτρα πρώτα τα ψηφία…', 'Κοίτα προσεκτικά κάθε θέση.', 'Εσύ μπορείς! 🍃', 'Από αριστερά προς τα δεξιά…', 'Το 0 είναι κι αυτό φυσικός!'];
+  const FOX_OK = ['Φυσικά! 🌟', 'Σωστά!', 'Τέλεια!', 'Μπράβο! 🍂', 'Ναι! Συνέχισε έτσι!', 'Φυσικά και ναι!'];
+  const FOX_BAD = ['Όχι ακριβώς… δες γιατί!', 'Σχεδόν! Διάβασε τον κανόνα.', 'Μη στεναχωριέσαι, μαθαίνουμε!', 'Χμ… για ξαναδές το.'];
+
+  function renderQ(q) {
+    S.q = q; S.locked = false; S.pos = 0;
+    $('qText').innerHTML = q.text; $('qVisual').innerHTML = q.visual || '';
+    const a = $('answer'); a.innerHTML = '';
+    if (q.kind === 'mc') {
+      const g = document.createElement('div'); g.className = 'opts' + (q.col || q.opts.some(o => String(o.label).length > 14) ? ' col' : '');
+      q.opts.forEach(o => { const b = document.createElement('button'); b.className = 'opt'; b.type = 'button'; b.innerHTML = o.label; b.addEventListener('click', () => answerMC(b, o, g)); g.appendChild(b); });
+      a.appendChild(g);
+    } else if (q.kind === 'order') {
+      const g = document.createElement('div'); g.className = 'tiles';
+      q.items.forEach(v => { const b = document.createElement('button'); b.className = 'tile'; b.type = 'button'; b.textContent = fmt(v); b.dataset.v = v; b.addEventListener('click', () => answerOrder(b, v, g)); g.appendChild(b); });
+      a.appendChild(g);
+    } else if (q.kind === 'build') {
+      const slots = document.createElement('div'); slots.className = 'slots'; const k = q.answer.length;
+      for (let i = 0; i < k; i++) { if (i > 0 && (k - i) % 3 === 0) { const s = document.createElement('span'); s.className = 'slot sep'; s.textContent = '.'; slots.appendChild(s); } const s = document.createElement('div'); s.className = 'slot'; slots.appendChild(s); }
+      const g = document.createElement('div'); g.className = 'tiles';
+      q.digits.forEach(dg => { const b = document.createElement('button'); b.className = 'tile'; b.type = 'button'; b.textContent = dg; b.addEventListener('click', () => answerBuild(b, dg, g, slots)); g.appendChild(b); });
+      const u = document.createElement('button'); u.className = 'undo'; u.type = 'button'; u.textContent = '⌫ Πίσω'; u.addEventListener('click', () => undoBuild(g, slots));
+      a.appendChild(slots); a.appendChild(g); a.appendChild(u); S.built = [];
+    }
+    foxSay('foxTxt', 'foxFace', pick(FOX_WAIT));
+    if (S.mode === 'level') renderProg();
+  }
+
+  function answerMC(btn, o, grid) {
+    if (S.locked) return; S.locked = true; grid.classList.add('locked');
+    if (o.ok) { btn.classList.add('ok'); onCorrect(); }
+    else { btn.classList.add('bad'); grid.querySelectorAll('.opt').forEach((b, i) => { if (S.q.opts[i].ok) b.classList.add('ok'); else if (b !== btn) b.classList.add('dim'); }); onWrong(); }
+  }
+  function answerOrder(btn, v, grid) {
+    if (S.locked) return;
+    const expect = S.q.answer[S.pos];
+    if (v === expect) {
+      sfx.tap(); btn.classList.add('used'); const bd = document.createElement('span'); bd.className = 'badge'; bd.textContent = ++S.pos; btn.appendChild(bd);
+      if (S.pos === S.q.answer.length) { S.locked = true; grid.classList.add('locked'); onCorrect(); }
+    } else {
+      S.locked = true; grid.classList.add('locked'); btn.classList.add('bad');
+      grid.querySelectorAll('.tile').forEach(b => { const idx = S.q.answer.indexOf(Number(b.dataset.v)); b.querySelectorAll('.badge').forEach(x => x.remove()); const bd = document.createElement('span'); bd.className = 'badge' + (b === btn ? ' bad' : ''); bd.textContent = idx + 1; b.appendChild(bd); });
+      onWrong();
+    }
+  }
+  function answerBuild(btn, dg, grid, slots) {
+    if (S.locked) return; sfx.tap(); btn.classList.add('used'); S.built.push({ btn, dg });
+    const sl = slots.querySelectorAll('.slot:not(.sep)'); sl[S.built.length - 1].textContent = dg; sl[S.built.length - 1].classList.add('full');
+    if (S.built.length === S.q.answer.length) {
+      S.locked = true; grid.classList.add('locked'); const got = S.built.map(x => x.dg).join('');
+      if (got === S.q.answer) onCorrect(); else { sl.forEach(s => s.style.borderColor = '#ef4444'); onWrong(); }
+    }
+  }
+  function undoBuild(grid, slots) {
+    if (S.locked || !S.built.length) return; sfx.tap(); const last = S.built.pop(); last.btn.classList.remove('used');
+    const sl = slots.querySelectorAll('.slot:not(.sep)'); sl[S.built.length].textContent = ''; sl[S.built.length].classList.remove('full');
+  }
+
+  function onCorrect() {
+    S.correct++; S.streak++; const bonus = S.streak >= 3 ? 5 : 0; S.score += 10 + bonus; sfx.ok();
+    if (S.streak >= 2) { $('streak').hidden = false; $('streakN').textContent = S.streak; }
+    if (S.mode === 'level') S.hist[S.i] = true; else S.timeLeft += 3, $('timerN').textContent = S.timeLeft;
+    foxSay('foxTxt', 'foxFace', pick(FOX_OK));
+    const t = $('toast'); t.textContent = `Φυσικά! +${10 + bonus}${bonus ? ' 🔥' : ''}`; t.classList.add('show');
+    setTimeout(() => { t.classList.remove('show'); next(); }, S.mode === 'sprint' ? 450 : 750);
+  }
+  function onWrong() {
+    S.wrong++; S.streak = 0; $('streak').hidden = true; sfx.bad();
+    if (S.mode === 'level') S.hist[S.i] = false;
+    foxSay('foxTxt', 'foxFace', pick(FOX_BAD));
+    if (S.mode === 'sprint') { // σύντομη ματιά στη σωστή απάντηση, ο χρόνος τρέχει
+      setTimeout(next, 1300); return;
+    }
+    $('shTitle').className = 'bad'; $('shTitle').textContent = '❌ Όχι ακριβώς…'; $('shEx').innerHTML = S.q.explain; $('shRule').innerHTML = '📒 ' + (S.q.rule || ''); $('shRule').hidden = !S.q.rule;
+    setTimeout(() => $('sheet').classList.add('show'), 350);
+  }
+  $('btnNext').addEventListener('click', () => { sfx.tap(); $('sheet').classList.remove('show'); setTimeout(next, 150); });
+  function next() {
+    if (S.mode === 'sprint') { if (S.timeLeft <= 0) return; S.sprintI++; renderQ(sprintQuestion(S.sprintI)); return; }
+    S.i++; if (S.i >= S.qs.length) endLevel(); else renderQ(S.qs[S.i]);
+  }
+  $('btnBack').addEventListener('click', () => { sfx.tap(); stopTimer(); $('sheet').classList.remove('show'); renderTrail(); show('scrStart'); });
+
+  /* --- τέλος --- */
+  function endLevel() {
+    const lv = S.lv, total = S.qs.length, passed = S.correct >= Math.ceil(total * PASS);
+    const st = !passed ? 0 : S.wrong === 0 ? 3 : S.wrong <= 2 ? 2 : 1;
+    if (st > (stars[lv.id] || 0)) { stars[lv.id] = st; LS.set('stars', stars); }
+    $('endName').textContent = `${lv.icon} ${lv.name}`; $('endStars').innerHTML = starStr(st);
+    $('endScore').innerHTML = `${S.correct}/${total}<small>σωστές · ${S.score} πόντοι</small>`;
+    const idx = LEVELS.indexOf(lv), nextLv = LEVELS[idx + 1];
+    $('endTxt').textContent = st === 3 ? 'Τέλειο! Ούτε ένα λάθος — φυσικά! 🌟' : st === 2 ? 'Πολύ καλά! Λίγη ακόμη εξάσκηση και τρία αστέρια. 🍃' : st === 1 ? 'Πέρασες! Ξαναδοκίμασε για περισσότερα αστέρια. 🥾' : `Χρειάζονται τουλάχιστον ${Math.ceil(total * PASS)} σωστές. Ρίξε μια ματιά στους κανόνες και ξαναπροσπάθησε!`;
+    $('btnEndNext').hidden = !(passed && nextLv); $('btnEndNext').textContent = nextLv ? `${nextLv.icon} ${nextLv.name} ▶` : '';
+    if (passed && !nextLv) { $('btnEndNext').hidden = false; $('btnEndNext').textContent = '⚡ Σπριντ Κορυφής'; }
+    S.endNext = passed ? (nextLv ? () => openIntro(nextLv) : startSprint) : null;
+    if (passed) { sfx.win(); confetti(); } else sfx.bad();
+    show('scrEnd');
+  }
+  function endSprint() {
+    $('sheet').classList.remove('show'); S.locked = true;
+    if (S.correct > bestSprint) { bestSprint = S.correct; LS.set('sprint', bestSprint); }
+    $('endName').textContent = '⚡ Σπριντ Κορυφής'; $('endStars').innerHTML = S.correct >= bestSprint && S.correct > 0 ? '🏆' : '⏱';
+    $('endScore').innerHTML = `${S.correct}<small>σωστές σε 60″ (+χρόνος) · ρεκόρ ${bestSprint} · ${S.wrong} λάθη</small>`;
+    $('endTxt').textContent = S.correct >= 20 ? 'Απίστευτο! Είσαι φυσικό ταλέντο! ⚡' : S.correct >= 12 ? 'Σούπερ ρυθμός! Πάμε για ρεκόρ;' : 'Καλή προσπάθεια! Με εξάσκηση γίνεσαι αστραπή.';
+    $('btnEndNext').hidden = true; S.endNext = null; sfx.win(); if (S.correct >= bestSprint && S.correct > 0) confetti(); show('scrEnd');
+  }
+  $('btnEndNext').addEventListener('click', () => { sfx.tap(); if (S.endNext) S.endNext(); });
+  $('btnEndRetry').addEventListener('click', () => { sfx.tap(); if (S.mode === 'sprint') startSprint(); else startLevel(S.lv); });
+  $('btnEndMap').addEventListener('click', () => { sfx.tap(); renderTrail(); show('scrStart'); });
+
+  function confetti() {
+    const c = document.createElement('div'); c.className = 'confetti'; const cols = ['#fbbf24', '#86efac', '#f97316', '#60a5fa', '#f472b6', '#fff'];
+    for (let i = 0; i < 70; i++) { const p = document.createElement('i'); p.style.left = Math.random() * 100 + '%'; p.style.background = pick(cols); p.style.animationDelay = Math.random() * .8 + 's'; p.style.transform = `rotate(${Math.random() * 360}deg)`; c.appendChild(p); }
+    document.getElementById('app').appendChild(c); setTimeout(() => c.remove(), 3400);
+  }
+
+  document.addEventListener('visibilitychange', () => { if (document.hidden && S.mode === 'sprint' && S.timer) { stopTimer(); endSprint(); } });
+  window.feedbackContext = () => ({ game: 'natural', mode: S.mode, level: S.lv ? S.lv.id : null, q: S.i, stars });
+
+  setSoundUI(); renderTrail();
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+<script src="../feedback.js" data-fb-corner="br" defer></script>
+</body>
+</html>
